@@ -1,13 +1,34 @@
 import 'package:flutter/material.dart';
 import 'register_view.dart';
+import 'dashboard_view.dart'; 
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final emailController = TextEditingController();
+    final usernameController = TextEditingController();
     final passwordController = TextEditingController();
+
+    void handleLogin() {
+      final username = usernameController.text.trim();
+      final password = passwordController.text.trim();
+
+      if (username == 'admin' && password == 'admin123') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const DashboardView()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('❌ Invalid username or password'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -32,13 +53,13 @@ class LoginView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 30),
-              const Text("Email address"),
+              const Text("Username"),
               const SizedBox(height: 8),
               TextField(
-                controller: emailController,
+                controller: usernameController,
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.email_outlined),
-                  hintText: 'Enter your email',
+                  prefixIcon: const Icon(Icons.person_outline),
+                  hintText: 'Enter your username',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -75,7 +96,7 @@ class LoginView extends StatelessWidget {
               const SizedBox(height: 10),
               Center(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: handleLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFab1d79),
                     shape: RoundedRectangleBorder(
@@ -85,7 +106,7 @@ class LoginView extends StatelessWidget {
                   ),
                   child: const Text(
                     "LOG IN",
-                    style: TextStyle(color: Colors.white), // ✅ white text
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
               ),
