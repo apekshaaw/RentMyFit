@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'register_view.dart';
-import 'dashboard_view.dart'; 
+import 'dashboard_view.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -15,14 +15,14 @@ class LoginView extends StatelessWidget {
       final password = passwordController.text.trim();
 
       if (username == 'admin' && password == 'admin123') {
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const DashboardView()),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('❌ Invalid username or password'),
+            content: const Text('Invalid username or password'),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Colors.red,
           ),

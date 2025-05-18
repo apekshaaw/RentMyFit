@@ -8,10 +8,11 @@ class DashboardView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard'),
-        backgroundColor: Color(0xFFab1d79),
+        backgroundColor: const Color(0xFFab1d79),
         centerTitle: true,
+        automaticallyImplyLeading: false, // 🔥 hides back button
       ),
-      body: const SizedBox(), 
+      body: const SizedBox(), // empty body
     );
   }
 }
