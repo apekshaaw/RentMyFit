@@ -13,7 +13,6 @@ class _SplashViewState extends State<SplashView> {
   void initState() {
     super.initState();
 
-    // Wait for 3 seconds and then go to LoginView
     Future.delayed(const Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
@@ -67,7 +66,7 @@ class _SplashViewState extends State<SplashView> {
                 const SizedBox(height: 30),
                 Image.asset(
                   'assets/rf.png',
-                  height: 200, // 🔥 made bigger
+                  height: 200, 
                   errorBuilder: (context, error, stackTrace) {
                     return const Text('Failed to load rf.png');
                   },
