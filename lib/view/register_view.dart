@@ -83,7 +83,7 @@ class RegisterView extends StatelessWidget {
                   ),
                   child: const Text(
                     "REGISTER",
-                    style: TextStyle(color: Colors.white), // ✅ white text
+                    style: TextStyle(color: Colors.white), 
                   ),
                 ),
               ),
