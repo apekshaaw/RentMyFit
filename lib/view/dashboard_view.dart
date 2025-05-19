@@ -10,9 +10,9 @@ class DashboardView extends StatelessWidget {
         title: const Text('Dashboard'),
         backgroundColor: const Color(0xFFab1d79),
         centerTitle: true,
-        automaticallyImplyLeading: false, // 🔥 hides back button
+        automaticallyImplyLeading: false, 
       ),
-      body: const SizedBox(), // empty body
+      body: const SizedBox(), 
     );
   }
 }
