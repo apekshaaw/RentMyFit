@@ -4,8 +4,6 @@ import 'dashboard_view.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
-  
-  get child => null;
 
   @override
   Widget build(BuildContext context) {
@@ -112,6 +110,15 @@ class LoginView extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: 20),
+              Center(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const RegisterView()),
+                    );
+                  },
                   child: const Text.rich(
                     TextSpan(
                       text: "Not registered yet? ",
