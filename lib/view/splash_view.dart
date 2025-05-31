@@ -29,7 +29,7 @@ class _SplashViewState extends State<SplashView> {
           Align(
             alignment: Alignment.topLeft,
             child: Image.asset(
-              'assets/top_wave.png',
+              'assets/images/top_wave.png',
               width: 180,
               errorBuilder: (context, error, stackTrace) {
                 return const Text('Failed to load top_wave.png');
@@ -39,7 +39,7 @@ class _SplashViewState extends State<SplashView> {
           Align(
             alignment: Alignment.bottomRight,
             child: Image.asset(
-              'assets/bottom_wave.png',
+              'assets/images/bottom_wave.png',
               width: 250,
               errorBuilder: (context, error, stackTrace) {
                 return const Text('Failed to load bottom_wave.png');
@@ -51,7 +51,7 @@ class _SplashViewState extends State<SplashView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset(
-                  'assets/rentmyfit_text_logo.png',
+                  'assets/images/rentmyfit_text_logo.png',
                   height: 45,
                   errorBuilder: (context, error, stackTrace) {
                     return const Text('Failed to load rentmyfit_text_logo.png');
@@ -65,8 +65,8 @@ class _SplashViewState extends State<SplashView> {
                 ),
                 const SizedBox(height: 30),
                 Image.asset(
-                  'assets/rf.png',
-                  height: 200, 
+                  'assets/images/rf.png',
+                  height: 200,
                   errorBuilder: (context, error, stackTrace) {
                     return const Text('Failed to load rf.png');
                   },
