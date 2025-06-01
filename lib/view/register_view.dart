@@ -27,6 +27,7 @@ class RegisterView extends StatelessWidget {
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFFab1d79),
+                    fontFamily: 'IntroRust',
                   ),
                 ),
               ),

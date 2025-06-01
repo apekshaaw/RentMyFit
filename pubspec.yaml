@@ -63,6 +63,10 @@ flutter:
     - assets/images/rentmyfit_text_logo.png
     - assets/images/top_wave.png
     - assets/images/bottom_wave.png
+    - assets/images/dress.png
+    - assets/images/bag.png
+    - assets/images/sunglasses.png
+    - assets/images/heels.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

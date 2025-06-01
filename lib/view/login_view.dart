@@ -43,13 +43,13 @@ class LoginView extends StatelessWidget {
               const Center(
                 child: Text(
                   "WELCOME",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, fontFamily: 'IntroRust'),
                 ),
               ),
               const Center(
                 child: Text(
                   "LOGIN",
-                  style: TextStyle(fontSize: 20, color: Color(0xFFab1d79)),
+                  style: TextStyle(fontSize: 20, color: Color(0xFFab1d79), fontFamily: 'IntroRust'),
                 ),
               ),
               const SizedBox(height: 30),
