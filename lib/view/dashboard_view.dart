@@ -88,15 +88,11 @@ class _DashboardViewState extends State<DashboardView> {
                 ),
               ),
               Text('Shoes', style: TextStyle(fontSize: 16, color: Colors.grey)),
-              Text(
-                'Womens',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
+              Text('Womens', style: TextStyle(fontSize: 16, color: Colors.grey)),
             ],
           ),
           const Divider(color: Color(0xFFab1d79), thickness: 2, endIndent: 260),
           const SizedBox(height: 20),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
@@ -114,7 +110,6 @@ class _DashboardViewState extends State<DashboardView> {
             ],
           ),
           const SizedBox(height: 20),
-
           Expanded(
             child: GridView.count(
               crossAxisCount: 2,
@@ -201,6 +196,25 @@ class _DashboardViewState extends State<DashboardView> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
+                const SizedBox(height: 8),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFab1d79),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 6, horizontal: 12),
+                      minimumSize: const Size(100, 30),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: const Text(
+                      'View Details',
+                      style: TextStyle(fontSize: 11),
+                    ),
+                  ),
+                )
               ],
             ),
           ),
