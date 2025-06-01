@@ -70,14 +70,12 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
-  // 👇 Add this method inside the class!
   Widget _buildHomePage() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Tabs
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
@@ -99,7 +97,6 @@ class _DashboardViewState extends State<DashboardView> {
           const Divider(color: Color(0xFFab1d79), thickness: 2, endIndent: 260),
           const SizedBox(height: 20),
 
-          // Filter & View Toggle
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
@@ -118,7 +115,6 @@ class _DashboardViewState extends State<DashboardView> {
           ),
           const SizedBox(height: 20),
 
-          // Product Grid
           Expanded(
             child: GridView.count(
               crossAxisCount: 2,
@@ -172,7 +168,7 @@ class _DashboardViewState extends State<DashboardView> {
                 ),
                 child: Image.asset(
                   imagePath,
-                  height: 140,
+                  height: 150,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),
