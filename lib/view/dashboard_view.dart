@@ -20,7 +20,7 @@ class _DashboardViewState extends State<DashboardView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: const Text('DASHBOARD'),
         backgroundColor: const Color(0xFFab1d79),
         centerTitle: true,
         automaticallyImplyLeading: false,
@@ -76,6 +76,7 @@ class _DashboardViewState extends State<DashboardView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Tabs
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
@@ -93,6 +94,8 @@ class _DashboardViewState extends State<DashboardView> {
           ),
           const Divider(color: Color(0xFFab1d79), thickness: 2, endIndent: 260),
           const SizedBox(height: 20),
+
+          // Filter & Sort
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
@@ -110,34 +113,48 @@ class _DashboardViewState extends State<DashboardView> {
             ],
           ),
           const SizedBox(height: 20),
+
+          // Grid Products
           Expanded(
-            child: GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 0.65,
-              children: [
-                _buildProductCard(
-                  'Striped Shirt Dress ZW Collection',
-                  '\$05.00 USD',
-                  'assets/images/dress.png',
-                ),
-                _buildProductCard(
-                  'Rhinestone Slingback High Heels',
-                  '\$05.00 USD',
-                  'assets/images/heels.png',
-                ),
-                _buildProductCard(
-                  'Laila Medium Signature Logo Satchel',
-                  '\$20.00 USD',
-                  'assets/images/bag.png',
-                ),
-                _buildProductCard(
-                  'DiorCannage R1U',
-                  '\$30.00 USD',
-                  'assets/images/sunglasses.png',
-                ),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return GridView.builder(
+                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 220,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 0.65,
+                  ),
+                  itemCount: 4,
+                  itemBuilder: (context, index) {
+                    final items = [
+                      {
+                        "title": "Striped Shirt Dress ZW Collection",
+                        "price": "\$05.00 USD",
+                        "image": "assets/images/dress.png"
+                      },
+                      {
+                        "title": "Rhinestone Slingback High Heels",
+                        "price": "\$05.00 USD",
+                        "image": "assets/images/heels.png"
+                      },
+                      {
+                        "title": "Laila Medium Signature Logo Satchel",
+                        "price": "\$20.00 USD",
+                        "image": "assets/images/bag.png"
+                      },
+                      {
+                        "title": "DiorCannage R1U",
+                        "price": "\$30.00 USD",
+                        "image": "assets/images/sunglasses.png"
+                      },
+                    ];
+                    final item = items[index];
+                    return _buildProductCard(
+                        item["title"]!, item["price"]!, item["image"]!);
+                  },
+                );
+              },
             ),
           ),
         ],
