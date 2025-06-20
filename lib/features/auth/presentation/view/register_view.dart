@@ -30,21 +30,33 @@ class _RegisterContentState extends State<RegisterContent> {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
 
   void handleRegister(BuildContext context) {
-  final name = nameController.text.trim();
-  final email = emailController.text.trim();
-  final password = passwordController.text.trim();
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
 
-  context.read<RegisterViewModel>().add(
-        RegisterButtonPressed(
-          name: name,
-          email: email,
-          password: password,
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Passwords do not match'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
         ),
       );
-}
+      return;
+    }
 
+    context.read<RegisterViewModel>().add(
+      RegisterButtonPressed(
+        name: name,
+        email: email,
+        password: password,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -126,6 +138,20 @@ class _RegisterContentState extends State<RegisterContent> {
                   obscureText: true,
                   decoration: InputDecoration(
                     hintText: 'Enter your password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text("Confirm Password"),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: confirmPasswordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    hintText: 'Confirm your password',
                     prefixIcon: const Icon(Icons.lock_outline),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),

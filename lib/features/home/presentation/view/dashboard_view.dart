@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rent_my_fit/features/auth/presentation/view/login_view.dart';
 import '../view_model/dashboard_event.dart';
 import '../view_model/dashboard_state.dart';
 import '../view_model/dashboard_view_model.dart';
@@ -36,11 +37,24 @@ class DashboardContent extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('DASHBOARD'),
-            backgroundColor: const Color(0xFFab1d79),
-            centerTitle: true,
-            automaticallyImplyLeading: false,
-          ),
+  title: const Text('DASHBOARD'),
+  backgroundColor: const Color(0xFFab1d79),
+  centerTitle: true,
+  automaticallyImplyLeading: false,
+  actions: [
+    IconButton(
+      icon: const Icon(Icons.logout, color: Colors.white),
+      onPressed: () {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginView()),
+          (route) => false,
+        );
+      },
+    ),
+  ],
+),
+
+
           body: screens[currentIndex],
           bottomNavigationBar: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
