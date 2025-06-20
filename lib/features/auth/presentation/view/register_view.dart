@@ -132,6 +132,20 @@ class _RegisterContentState extends State<RegisterContent> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 20),
+                const Text("Confirm Password"),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    hintText: 'Enter your password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 30),
                 Center(
                   child: ElevatedButton(
