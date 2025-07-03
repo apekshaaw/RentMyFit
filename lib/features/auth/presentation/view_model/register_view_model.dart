@@ -1,13 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rent_my_fit/features/auth/domain/entity/user_entity.dart';
-import 'package:rent_my_fit/features/auth/domain/repository/user_repository.dart';
+import 'package:rent_my_fit/features/auth/domain/usecases/register_user.dart';
 import 'register_event.dart';
 import 'register_state.dart';
 
 class RegisterViewModel extends Bloc<RegisterEvent, RegisterState> {
-  final UserRepository repository;
+  final RegisterUser registerUser;
 
-  RegisterViewModel(this.repository) : super(RegisterInitial()) {
+  RegisterViewModel(this.registerUser) : super(RegisterInitial()) {
     on<RegisterButtonPressed>(_onRegisterButtonPressed);
   }
 
@@ -16,7 +16,6 @@ class RegisterViewModel extends Bloc<RegisterEvent, RegisterState> {
     Emitter<RegisterState> emit,
   ) async {
     emit(RegisterLoading());
-
     try {
       final user = UserEntity(
         name: event.name,
@@ -24,8 +23,7 @@ class RegisterViewModel extends Bloc<RegisterEvent, RegisterState> {
         password: event.password,
       );
 
-      await repository.registerUser(user);
-
+      await registerUser.call(user);
       emit(RegisterSuccess());
     } catch (e) {
       emit(RegisterFailure(message: e.toString()));
