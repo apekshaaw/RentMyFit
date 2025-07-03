@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:rent_my_fit/features/auth/data/data_source/user_local_datasource.dart';
-import 'package:rent_my_fit/features/auth/data/repository/user_local_repository_impl.dart';
+import 'package:rent_my_fit/app/service_locator.dart';
+import 'package:rent_my_fit/features/auth/domain/usecases/register_user.dart';
 import 'package:rent_my_fit/features/auth/presentation/view_model/register_event.dart';
 import 'package:rent_my_fit/features/auth/presentation/view_model/register_state.dart';
 import 'package:rent_my_fit/features/auth/presentation/view_model/register_view_model.dart';
@@ -13,7 +13,7 @@ class RegisterView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => RegisterViewModel(UserLocalRepository(UserLocalDatasource())),
+      create: (_) => RegisterViewModel(sl<RegisterUser>()),
       child: const RegisterContent(),
     );
   }
@@ -40,21 +40,17 @@ class _RegisterContentState extends State<RegisterContent> {
 
     if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Passwords do not match'),
-          behavior: SnackBarBehavior.floating,
+        const SnackBar(
+          content: Text('Passwords do not match'),
           backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
     }
 
     context.read<RegisterViewModel>().add(
-      RegisterButtonPressed(
-        name: name,
-        email: email,
-        password: password,
-      ),
+      RegisterButtonPressed(name: name, email: email, password: password),
     );
   }
 
@@ -63,145 +59,115 @@ class _RegisterContentState extends State<RegisterContent> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
-          child: BlocListener<RegisterViewModel, RegisterState>(
-            listener: (context, state) {
-              if (state is RegisterSuccess) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('User registered'),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: Colors.green,
-                  ),
-                );
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginView()),
-                );
-              } else if (state is RegisterFailure) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.message),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.arrow_back),
-                const SizedBox(height: 20),
-                const Center(
-                  child: Text(
-                    "REGISTER",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFab1d79),
-                    ),
-                  ),
+        child: BlocListener<RegisterViewModel, RegisterState>(
+          listener: (context, state) {
+            if (state is RegisterSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('User registered'),
+                  backgroundColor: Colors.green,
+                  behavior: SnackBarBehavior.floating,
                 ),
-                const SizedBox(height: 30),
-                const Text("Your Name"),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    hintText: 'Your Full Name',
-                    prefixIcon: const Icon(Icons.person_outline),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
+              );
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginView()),
+              );
+            } else if (state is RegisterFailure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
                 ),
-                const SizedBox(height: 20),
-                const Text("Email address"),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    hintText: 'Enter your email',
-                    prefixIcon: const Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text("Password"),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    hintText: 'Enter your password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text("Confirm Password"),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: confirmPasswordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    hintText: 'Confirm your password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () => handleRegister(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFab1d79),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                    child: const Text(
+              );
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.arrow_back),
+                  const SizedBox(height: 20),
+                  const Center(
+                    child: Text(
                       "REGISTER",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LoginView()),
-                      );
-                    },
-                    child: const Text.rich(
-                      TextSpan(
-                        text: "Already have an account? ",
-                        children: [
-                          TextSpan(
-                            text: "Log in",
-                            style: TextStyle(color: Color(0xFFab1d79)),
-                          )
-                        ],
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFab1d79),
                       ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 30),
+                  buildTextField("Your Name", nameController, Icons.person_outline),
+                  const SizedBox(height: 20),
+                  buildTextField("Email address", emailController, Icons.email_outlined),
+                  const SizedBox(height: 20),
+                  buildTextField("Password", passwordController, Icons.lock_outline, isPassword: true),
+                  const SizedBox(height: 20),
+                  buildTextField("Confirm Password", confirmPasswordController, Icons.lock_outline, isPassword: true),
+                  const SizedBox(height: 30),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () => handleRegister(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFab1d79),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                      child: const Text("REGISTER", style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginView()),
+                        );
+                      },
+                      child: const Text.rich(
+                        TextSpan(
+                          text: "Already have an account? ",
+                          children: [
+                            TextSpan(
+                              text: "Log in",
+                              style: TextStyle(color: Color(0xFFab1d79)),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget buildTextField(String label, TextEditingController controller, IconData icon, {bool isPassword = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          obscureText: isPassword,
+          decoration: InputDecoration(
+            hintText: label,
+            prefixIcon: Icon(icon),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+      ],
     );
   }
 }
