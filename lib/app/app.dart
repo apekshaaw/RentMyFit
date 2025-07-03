@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../features/splash/presentation/view/splash_view.dart';
-import 'theme.dart' as AppTheme;
+import 'theme.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -10,7 +10,7 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: 'Adora',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.getApplicationTheme(),
+      theme: getApplicationTheme(),
       home: const SplashView(),
     );
   }
