@@ -15,8 +15,16 @@ class UserLocalRepository implements UserRepository {
   }
 
   @override
-  Future<UserEntity?> loginUser(String username) async {
-    final hiveModel = await datasource.getUser(username);
-    return hiveModel?.toEntity();
+  Future<UserEntity> loginUser(String email, String password) async {
+    final hiveModel = await datasource.getUser(email);
+    if (hiveModel == null) {
+      throw Exception("User not found");
+    }
+
+    if (hiveModel.password != password) {
+      throw Exception("Invalid credentials");
+    }
+
+    return hiveModel.toEntity();
   }
 }
