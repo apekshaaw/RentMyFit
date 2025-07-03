@@ -1,12 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:rent_my_fit/features/auth/domain/repository/user_repository.dart';
+import 'package:rent_my_fit/features/auth/domain/usecases/login_user.dart';
 import 'login_event.dart';
 import 'login_state.dart';
 
 class LoginViewModel extends Bloc<LoginEvent, LoginState> {
-  final UserRepository repository;
+  final LoginUser loginUser;
 
-  LoginViewModel(this.repository) : super(LoginInitial()) {
+  LoginViewModel(this.loginUser) : super(LoginInitial()) {
     on<LoginButtonPressed>(_onLoginButtonPressed);
   }
 
@@ -16,17 +16,16 @@ class LoginViewModel extends Bloc<LoginEvent, LoginState> {
   ) async {
     emit(LoginLoading());
 
-    final user = await repository.loginUser(event.username);
+    try {
+      final user = await loginUser(event.username, event.password);
 
-    if (user == null) {
-      emit(const LoginFailure(message: 'Invalid credentials'));
-      return;
-    }
-
-    if (user.password == event.password) {
-      emit(LoginSuccess());
-    } else {
-      emit(const LoginFailure(message: 'Invalid credentials'));
+      if (user != null) {
+        emit(LoginSuccess());
+      } else {
+        emit(const LoginFailure(message: 'Invalid credentials'));
+      }
+    } catch (e) {
+      emit(LoginFailure(message: e.toString()));
     }
   }
 }
