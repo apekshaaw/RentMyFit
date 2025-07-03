@@ -34,24 +34,22 @@ class SplashContent extends StatelessWidget {
       child: Scaffold(
         body: Stack(
           children: [
-            Align(
-              alignment: Alignment.topLeft,
+            Positioned(
+              top: 0,
+              left: 0,
               child: Image.asset(
                 'assets/images/top_wave.png',
                 width: 180,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Text('Failed to load top_wave.png');
-                },
+                fit: BoxFit.cover,
               ),
             ),
-            Align(
-              alignment: Alignment.bottomRight,
+            Positioned(
+              bottom: 0,
+              right: 0,
               child: Image.asset(
                 'assets/images/bottom_wave.png',
                 width: 250,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Text('Failed to load bottom_wave.png');
-                },
+                fit: BoxFit.cover,
               ),
             ),
             Center(
@@ -61,9 +59,6 @@ class SplashContent extends StatelessWidget {
                   Image.asset(
                     'assets/images/rentmyfit_text_logo.png',
                     height: 45,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Text('Failed to load rentmyfit_text_logo.png');
-                    },
                   ),
                   const SizedBox(height: 12),
                   const Text(
@@ -75,9 +70,6 @@ class SplashContent extends StatelessWidget {
                   Image.asset(
                     'assets/images/rf.png',
                     height: 200,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Text('Failed to load rf.png');
-                    },
                   ),
                 ],
               ),

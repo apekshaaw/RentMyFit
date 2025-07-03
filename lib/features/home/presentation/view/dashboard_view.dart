@@ -63,7 +63,7 @@ class DashboardContent extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10),
+                  BoxShadow(color: Color(0x80123456), blurRadius: 10),
                 ],
               ),
               child: BottomNavigationBar(
