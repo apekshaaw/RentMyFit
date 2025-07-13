@@ -5,7 +5,6 @@ import 'package:rent_my_fit/features/auth/presentation/view_model/login_event.da
 import 'package:rent_my_fit/features/auth/presentation/view_model/login_state.dart';
 import 'package:rent_my_fit/features/auth/presentation/view_model/login_view_model.dart';
 import '../view/register_view.dart';
-import '../../../home/presentation/view/dashboard_view.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -20,7 +19,9 @@ class LoginView extends StatelessWidget {
 }
 
 class LoginContent extends StatefulWidget {
-  const LoginContent({super.key});
+  final bool isTest;
+
+  const LoginContent({super.key, this.isTest = false});
 
   @override
   State<LoginContent> createState() => _LoginContentState();
@@ -35,8 +36,8 @@ class _LoginContentState extends State<LoginContent> {
     final password = passwordController.text.trim();
 
     context.read<LoginViewModel>().add(
-      LoginButtonPressed(username: email, password: password),
-    );
+          LoginButtonPressed(username: email, password: password),
+        );
   }
 
   @override
@@ -56,10 +57,14 @@ class _LoginContentState extends State<LoginContent> {
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DashboardView()),
-                );
+
+                // Only navigate if not in test mode
+                if (!widget.isTest) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const Placeholder()),
+                  );
+                }
               } else if (state is LoginFailure) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

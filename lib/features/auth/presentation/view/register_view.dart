@@ -8,19 +8,21 @@ import 'package:rent_my_fit/features/auth/presentation/view_model/register_view_
 import '../view/login_view.dart';
 
 class RegisterView extends StatelessWidget {
-  const RegisterView({super.key});
+  final bool isTest;
+  const RegisterView({super.key, this.isTest = false});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => RegisterViewModel(sl<RegisterUser>()),
-      child: const RegisterContent(),
+      child: RegisterContent(isTest: isTest),
     );
   }
 }
 
 class RegisterContent extends StatefulWidget {
-  const RegisterContent({super.key});
+  final bool isTest;
+  const RegisterContent({super.key, this.isTest = false});
 
   @override
   State<RegisterContent> createState() => _RegisterContentState();
@@ -69,10 +71,12 @@ class _RegisterContentState extends State<RegisterContent> {
                   behavior: SnackBarBehavior.floating,
                 ),
               );
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginView()),
-              );
+              if (!widget.isTest) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginView()),
+                );
+              }
             } else if (state is RegisterFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -125,10 +129,12 @@ class _RegisterContentState extends State<RegisterContent> {
                   Center(
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const LoginView()),
-                        );
+                        if (!widget.isTest) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (_) => const LoginView()),
+                          );
+                        }
                       },
                       child: const Text.rich(
                         TextSpan(
@@ -159,6 +165,7 @@ class _RegisterContentState extends State<RegisterContent> {
         Text(label),
         const SizedBox(height: 8),
         TextField(
+          key: Key(label), // Helpful for testing
           controller: controller,
           obscureText: isPassword,
           decoration: InputDecoration(
