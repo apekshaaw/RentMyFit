@@ -20,9 +20,9 @@ class _AddProductFormState extends State<AddProductForm> {
   late TextEditingController _descriptionController;
   late TextEditingController _priceController;
   late String _category;
-  late String _size;
-  File? _imageFile; // newly picked image file
-  String? _existingImageUrl; // existing image URL
+  late List<String> _selectedSizes;
+  File? _imageFile;
+  String? _existingImageUrl;
 
   final clothingSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
   final shoeSizes = ['36', '37', '38', '39', '40', '41', '42', '43', '44'];
@@ -37,7 +37,7 @@ class _AddProductFormState extends State<AddProductForm> {
     _descriptionController = TextEditingController(text: p?.description ?? '');
     _priceController = TextEditingController(text: p?.price.toString() ?? '');
     _category = p?.category ?? 'clothing';
-    _size = (p != null && p.sizes.isNotEmpty) ? p.sizes.first : 'M';
+    _selectedSizes = p?.sizes ?? ['M'];
     _existingImageUrl = p?.imageUrl;
   }
 
@@ -47,32 +47,32 @@ class _AddProductFormState extends State<AddProductForm> {
     if (picked != null) {
       setState(() {
         _imageFile = File(picked.path);
-        _existingImageUrl = null; // clear existing URL once new image picked
+        _existingImageUrl = null;
       });
     }
   }
 
   void _submit() async {
-    if (_formKey.currentState!.validate() && (_imageFile != null || _existingImageUrl != null)) {
+    if (_formKey.currentState!.validate() &&
+        (_imageFile != null || _existingImageUrl != null) &&
+        _selectedSizes.isNotEmpty) {
       final product = ProductModel(
         id: widget.existingProduct?.id ?? '',
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         category: _category,
-        sizes: [_size],
+        sizes: _selectedSizes,
         imageUrl: _existingImageUrl ?? '',
         price: double.tryParse(_priceController.text.trim()) ?? 0.0,
       );
 
       try {
         if (widget.existingProduct == null) {
-          // Add new product
           await context.read<ProductViewModel>().addProduct(product, _imageFile!);
         } else {
-          // Update existing product
           await context.read<ProductViewModel>().updateProduct(product, _imageFile);
         }
-        if (mounted) Navigator.pop(context); // Close dialog
+        if (mounted) Navigator.pop(context);
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -82,7 +82,7 @@ class _AddProductFormState extends State<AddProductForm> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all fields and upload image")),
+        const SnackBar(content: Text("Please fill all fields and select at least one size")),
       );
     }
   }
@@ -91,7 +91,6 @@ class _AddProductFormState extends State<AddProductForm> {
   Widget build(BuildContext context) {
     final isShoe = _category == 'shoes';
     final currentSizes = isShoe ? shoeSizes : clothingSizes;
-
     final isEditMode = widget.existingProduct != null;
 
     return AlertDialog(
@@ -102,7 +101,7 @@ class _AddProductFormState extends State<AddProductForm> {
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       content: SizedBox(
-        height: 520,
+        height: 560,
         width: 400,
         child: SingleChildScrollView(
           child: Form(
@@ -159,17 +158,33 @@ class _AddProductFormState extends State<AddProductForm> {
                   onChanged: (value) {
                     setState(() {
                       _category = value!;
-                      _size = _category == 'shoes' ? shoeSizes.first : clothingSizes.first;
+                      _selectedSizes.clear();
                     });
                   },
                 ),
-                DropdownButtonFormField<String>(
-                  value: _size,
-                  decoration: const InputDecoration(labelText: 'Size'),
-                  items: currentSizes
-                      .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                      .toList(),
-                  onChanged: (value) => setState(() => _size = value!),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('Select Sizes', style: Theme.of(context).textTheme.labelMedium),
+                ),
+                Wrap(
+                  spacing: 8,
+                  children: currentSizes.map((size) {
+                    final isSelected = _selectedSizes.contains(size);
+                    return FilterChip(
+                      label: Text(size),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedSizes.add(size);
+                          } else {
+                            _selectedSizes.remove(size);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
                 ),
               ],
             ),
