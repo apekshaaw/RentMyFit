@@ -11,7 +11,14 @@ class LoginInitial extends LoginState {}
 
 class LoginLoading extends LoginState {}
 
-class LoginSuccess extends LoginState {}
+class LoginSuccess extends LoginState {
+  final bool isAdmin;
+
+  const LoginSuccess({this.isAdmin = false}); // ✅ Default to false
+
+  @override
+  List<Object> get props => [isAdmin];
+}
 
 class LoginFailure extends LoginState {
   final String message;

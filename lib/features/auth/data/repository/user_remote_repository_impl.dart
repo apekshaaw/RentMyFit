@@ -11,7 +11,7 @@ class UserRemoteRepositoryImpl implements UserRepository {
   @override
   Future<void> registerUser(UserEntity user) async {
     final response = await client.post(
-      Uri.parse('http://192.168.1.67:5000/api/auth/register'),
+      Uri.parse('http://10.0.2.2:5000/api/auth/register'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'name': user.name,
@@ -27,29 +27,34 @@ class UserRemoteRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<UserEntity> loginUser(String email, String password) async {
-    final response = await client.post(
-      Uri.parse('http://192.168.1.67:5000/api/auth/login'), 
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'email': email,
-        'password': password,
-      }),
+Future<UserEntity> loginUser(String email, String password) async {
+  final isAdminLogin = email == 'admin@rentmyfit.com' && password == 'admin1234';
+
+  final response = await client.post(
+    Uri.parse(isAdminLogin
+        ? 'http://10.0.2.2:5000/api/auth/admin-login'
+        : 'http://10.0.2.2:5000/api/auth/login'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'email': email, 'password': password}),
+  );
+
+  final data = jsonDecode(response.body);
+
+  if (response.statusCode == 200) {
+    final user = data['user'];
+
+    return UserEntity(
+      id: user['id'] ?? user['_id'],
+      name: user['name'],
+      email: user['email'],
+      password: '',
+      isAdmin: user['isAdmin'] ?? false,
+      token: data['token'], // ✅ Attach the token here
     );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final user = data['user'];
-
-      return UserEntity(
-        id: user['id'] ?? user['_id'],
-        name: user['name'],
-        email: user['email'],
-        password: '', // Hide password for security
-      );
-    } else {
-      final data = jsonDecode(response.body);
-      throw Exception(data['message'] ?? 'Login failed');
-    }
+  } else {
+    throw Exception(data['message'] ?? 'Login failed');
   }
+}
+
+
 }

@@ -20,7 +20,7 @@ class LoginViewModel extends Bloc<LoginEvent, LoginState> {
       final user = await loginUser(event.username, event.password);
 
       if (user != null) {
-        emit(LoginSuccess());
+        emit(LoginSuccess(isAdmin: user.isAdmin)); // ✅ pass isAdmin here
       } else {
         emit(const LoginFailure(message: 'Invalid credentials'));
       }
