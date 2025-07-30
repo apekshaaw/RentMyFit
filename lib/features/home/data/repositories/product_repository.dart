@@ -80,35 +80,38 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
-  Future<void> updateProduct(ProductModel product, [File? newImage]) async {
-    final uri = Uri.parse('$baseUrl/products/${product.id}');
-    final request = http.MultipartRequest('PUT', uri);
+Future<void> updateProduct(ProductModel product, [File? newImage]) async {
+  final uri = Uri.parse('$baseUrl/products/${product.id}');
 
-    // ✅ Get token
-    final token = await _storage.read(key: 'token');
-    if (token == null) {
-      throw Exception('No token found. Please log in again.');
-    }
+  final request = http.MultipartRequest('PUT', uri);
 
-    // ✅ Add updated fields
-    request.fields['name'] = product.name;
-    request.fields['description'] = product.description;
-    request.fields['price'] = product.price.toString();
-    request.fields['category'] = product.category;
-    request.fields['sizes'] = jsonEncode(product.sizes);
-
-    // ✅ Attach new image if available
-    if (newImage != null) {
-      request.files.add(await http.MultipartFile.fromPath('image', newImage.path));
-    }
-
-    request.headers['Authorization'] = 'Bearer $token';
-
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to update product: ${response.body}');
-    }
+  // ✅ Auth token
+  final token = await _storage.read(key: 'token');
+  if (token == null) {
+    throw Exception('No token found. Please log in again.');
   }
+
+  // ✅ Add updated fields
+  request.fields['name'] = product.name;
+  request.fields['description'] = product.description;
+  request.fields['price'] = product.price.toString();
+  request.fields['category'] = product.category;
+  request.fields['sizes'] = jsonEncode(product.sizes); // must be a JSON array string
+
+  // ✅ Attach image only if updated
+  if (newImage != null) {
+    request.files.add(await http.MultipartFile.fromPath('image', newImage.path));
+  }
+
+  request.headers['Authorization'] = 'Bearer $token';
+
+  final streamedResponse = await request.send();
+  final response = await http.Response.fromStream(streamedResponse);
+
+  if (response.statusCode != 200) {
+    print('Response Body: ${response.body}');
+    throw Exception('Failed to update product: ${response.body}');
+  }
+}
+
 }

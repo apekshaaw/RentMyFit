@@ -4,6 +4,7 @@ import 'package:rent_my_fit/app/service_locator.dart';
 import 'package:rent_my_fit/features/auth/presentation/view_model/login_event.dart';
 import 'package:rent_my_fit/features/auth/presentation/view_model/login_state.dart';
 import 'package:rent_my_fit/features/auth/presentation/view_model/login_view_model.dart';
+import 'package:rent_my_fit/features/home/presentation/view/admin_panel_view.dart';
 import 'package:rent_my_fit/features/home/presentation/view/dashboard_view.dart';
 import '../view/register_view.dart';
 
@@ -50,33 +51,36 @@ class _LoginContentState extends State<LoginContent> {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
           child: BlocListener<LoginViewModel, LoginState>(
             listener: (context, state) {
-              if (state is LoginSuccess) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('You are logged in'),
-                    backgroundColor: Colors.green,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
+  if (state is LoginSuccess) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('You are logged in'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
 
-                if (!widget.isTest) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => DashboardView(isAdmin: state.isAdmin),
-                    ),
-                  );
-                }
-              } else if (state is LoginFailure) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.message),
-                    backgroundColor: Colors.red,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              }
-            },
+    if (!widget.isTest) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => state.user.isAdmin
+              ? const AdminPanelView()
+              : DashboardView(isAdmin: false),
+        ),
+      );
+    }
+  } else if (state is LoginFailure) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(state.message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+},
+
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

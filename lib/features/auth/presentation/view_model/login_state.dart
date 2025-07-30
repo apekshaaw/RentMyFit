@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
+import 'package:rent_my_fit/features/auth/domain/entity/user_entity.dart';
 
 abstract class LoginState extends Equatable {
   const LoginState();
-
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class LoginInitial extends LoginState {}
@@ -12,12 +12,12 @@ class LoginInitial extends LoginState {}
 class LoginLoading extends LoginState {}
 
 class LoginSuccess extends LoginState {
-  final bool isAdmin;
+  final UserEntity user;
 
-  const LoginSuccess({this.isAdmin = false}); // ✅ Default to false
+  const LoginSuccess({required this.user});
 
   @override
-  List<Object> get props => [isAdmin];
+  List<Object?> get props => [user];
 }
 
 class LoginFailure extends LoginState {
@@ -26,5 +26,5 @@ class LoginFailure extends LoginState {
   const LoginFailure({required this.message});
 
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
 }
