@@ -86,11 +86,11 @@ class AdminPanelView extends StatelessWidget {
         backgroundColor: const Color(0xFFab1d79),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () => _showLogoutDialog(context),
           ),
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.add, color: Colors.white),
             onPressed: () {
               showDialog(
                 context: context,
