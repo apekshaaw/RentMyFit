@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rent_my_fit/app/service_locator.dart';
 import 'package:rent_my_fit/features/auth/presentation/view/login_view.dart';
+import 'package:rent_my_fit/features/cart/presentation/view%20model/cart_event.dart';
+import 'package:rent_my_fit/features/cart/presentation/view%20model/cart_view_model.dart';
+import 'package:rent_my_fit/features/cart/presentation/view/cart_view.dart';
 import 'package:rent_my_fit/features/home/data/models/product_model.dart';
 import 'package:rent_my_fit/features/home/presentation/view/add_product_view.dart';
+import 'package:rent_my_fit/features/home/presentation/view/product_detail_view.dart';
 import 'package:rent_my_fit/features/home/presentation/view_model/product_view_model.dart';
-
-
+import 'package:rent_my_fit/features/wishlist/presentation/view/wishlist_view.dart';
 
 class DashboardView extends StatelessWidget {
   final bool isAdmin;
@@ -16,178 +19,292 @@ class DashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => sl<ProductViewModel>()..fetchProducts(),
+      create: (_) => sl<ProductViewModel>()
+        ..fetchProducts()
+        ..fetchWishlist(),
       child: DashboardContent(isAdmin: isAdmin),
     );
   }
 }
 
-class DashboardContent extends StatelessWidget {
+class DashboardContent extends StatefulWidget {
   final bool isAdmin;
 
   const DashboardContent({super.key, required this.isAdmin});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('DASHBOARD'),
-        backgroundColor: const Color(0xFFab1d79),
-        centerTitle: true,
-        automaticallyImplyLeading: false,
+  State<DashboardContent> createState() => _DashboardContentState();
+}
+
+class _DashboardContentState extends State<DashboardContent> {
+  int _selectedIndex = 0;
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Color(0xFFab1d79))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
             onPressed: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const LoginView()),
-                (route) => false,
-              );
+              Navigator.of(ctx).pop();
+              Future.delayed(const Duration(milliseconds: 100), () {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const LoginView()),
+                  (_) => false,
+                );
+              });
             },
+            child: const Text('Logout'),
           ),
         ],
-      ),
-      body: BlocBuilder<ProductViewModel, List<ProductModel>>(
-        builder: (context, products) {
-          if (products.isEmpty) {
-            return const Center(child: Text('No products available.'));
-          }
-
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: GridView.builder(
-              itemCount: products.length,
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 220,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 0.65,
-              ),
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return _buildProductCard(product);
-              },
-            ),
-          );
-        },
-      ),
-      floatingActionButton: isAdmin
-    ? FloatingActionButton(
-        backgroundColor: const Color(0xFFab1d79),
-        child: const Icon(Icons.add),
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => AddProductView()),
-          );
-        },
-      )
-    : null,
-
-
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: const [
-              BoxShadow(color: Color(0x80123456), blurRadius: 10),
-            ],
-          ),
-          child: BottomNavigationBar(
-            currentIndex: 0,
-            selectedItemColor: const Color(0xFFab1d79),
-            unselectedItemColor: Colors.black,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            onTap: (_) {},
-            type: BottomNavigationBarType.fixed,
-            showSelectedLabels: false,
-            showUnselectedLabels: false,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined, size: 30),
-                label: '',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.favorite_border, size: 30),
-                label: '',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline, size: 30),
-                label: '',
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
 
-  Widget _buildProductCard(ProductModel product) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: const Color(0xFFF3F3F3),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
+  @override
+Widget build(BuildContext context) {
+  final tabs = [
+    _buildHomeTab(),
+    const WishlistView(),
+    const CartView(),
+    const Center(child: Text('Profile Page')),
+  ];
+
+  return Scaffold(
+    appBar: (_selectedIndex == 0 || _selectedIndex == 3)
+        ? AppBar(
+            title: const Text('DASHBOARD'),
+            backgroundColor: const Color(0xFFab1d79),
+            centerTitle: true,
+            automaticallyImplyLeading: false,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.logout, color: Colors.white),
+                onPressed: () => _showLogoutDialog(context),
               ),
-              child: Image.network(
-                product.imageUrl,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+            ],
+          )
+        : null,
+
+      body: tabs[_selectedIndex],
+      floatingActionButton: widget.isAdmin && _selectedIndex == 0
+          ? FloatingActionButton(
+              backgroundColor: const Color(0xFFab1d79),
+              child: const Icon(Icons.add),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AddProductView()),
+                );
+              },
+            )
+          : null,
+      bottomNavigationBar: Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+  child: Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(30),
+      boxShadow: const [
+        BoxShadow(color: Color(0x80123456), blurRadius: 10),
+      ],
+    ),
+    child: BottomNavigationBar(
+      currentIndex: _selectedIndex,
+      selectedItemColor: const Color(0xFFab1d79),
+      unselectedItemColor: Colors.black,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      type: BottomNavigationBarType.fixed,
+      showSelectedLabels: false,
+      showUnselectedLabels: false,
+      onTap: (index) {
+        setState(() => _selectedIndex = index); // ✅ Switch tabs instead of push
+      },
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home_outlined, size: 30),
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.favorite_border, size: 30),
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.shopping_cart_outlined, size: 30),
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline, size: 30),
+          label: '',
+        ),
+      ],
+    ),
+  ),
+),
+
+
+    );
+  }
+
+  Widget _buildHomeTab() {
+    return BlocBuilder<ProductViewModel, List<ProductModel>>(
+      builder: (context, products) {
+        final viewModel = context.read<ProductViewModel>();
+        final wishlistIds = viewModel.wishlistIds;
+
+        if (products.isEmpty) {
+          return const Center(child: Text('No products available.'));
+        }
+
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: GridView.builder(
+            itemCount: products.length,
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 220,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              childAspectRatio: 0.65,
             ),
+            itemBuilder: (context, index) {
+              final product = products[index];
+              final isFavorite = wishlistIds.contains(product.id);
+              return _buildProductCard(product, isFavorite, viewModel, context);
+            },
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
+        );
+      },
+    );
+  }
+
+  Widget _buildProductCard(
+    ProductModel product,
+    bool isFavorite,
+    ProductViewModel viewModel,
+    BuildContext context,
+  ) {
+    return StatefulBuilder(
+      builder: (context, setState) => Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: const Color(0xFFF3F3F3),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  product.name.toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                    child: Image.network(
+                      product.imageUrl,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '\$${product.price}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFab1d79),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 6,
-                        horizontal: 12,
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.name.toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      minimumSize: const Size(100, 30),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                      const SizedBox(height: 4),
+                      Text(
+                        '\$${product.price}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
-                    ),
-                    child: const Text(
-                      'View Details',
-                      style: TextStyle(fontSize: 11),
-                    ),
+                      const SizedBox(height: 8),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProductDetailView(product: product),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFab1d79),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 6,
+                              horizontal: 12,
+                            ),
+                            minimumSize: const Size(100, 30),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: const Text(
+                            'View Details',
+                            style: TextStyle(fontSize: 11),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
+            ),
+          ),
+          Positioned(
+            top: 10,
+            right: 10,
+            child: GestureDetector(
+              onTap: () async {
+                await viewModel.toggleWishlist(product.id);
+                await viewModel.fetchWishlist();
+                setState(() {});
+                final updatedFavorite = viewModel.isInWishlist(product.id);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      updatedFavorite
+                          ? 'Added to wishlist'
+                          : 'Removed from wishlist',
+                    ),
+                    backgroundColor: updatedFavorite ? Colors.green : Colors.red,
+                    duration: const Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                    margin: const EdgeInsets.all(16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+              },
+              child: Icon(
+                viewModel.isInWishlist(product.id)
+                    ? Icons.favorite
+                    : Icons.favorite_border,
+                color: viewModel.isInWishlist(product.id)
+                    ? const Color(0xFFab1d79)
+                    : Colors.black,
+              ),
             ),
           ),
         ],
