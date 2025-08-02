@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rent_my_fit/app/service_locator.dart' as serviceLocator;
 import 'package:rent_my_fit/features/auth/domain/usecases/login_user.dart';
 import 'package:rent_my_fit/features/auth/domain/entity/user_entity.dart';
 import 'login_event.dart';
@@ -21,7 +22,10 @@ class LoginViewModel extends Bloc<LoginEvent, LoginState> {
       final UserEntity? user = await loginUser(event.username, event.password);
 
       if (user != null) {
-        emit(LoginSuccess(user: user)); // ✅ send whole user object
+        // Store JWT so subsequent API calls can be authorized
+        serviceLocator.authToken = user.token;
+
+        emit(LoginSuccess(user: user));
       } else {
         emit(const LoginFailure(message: 'Invalid credentials'));
       }
