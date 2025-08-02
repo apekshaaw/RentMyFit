@@ -10,6 +10,10 @@ import 'package:rent_my_fit/features/auth/presentation/view_model/register_view_
 import 'package:rent_my_fit/features/cart/presentation/view%20model/cart_view_model.dart';
 import 'package:rent_my_fit/features/home/data/repositories/product_repository.dart';
 import 'package:rent_my_fit/features/home/presentation/view_model/product_view_model.dart';
+import 'package:rent_my_fit/features/profile/domain/usecases/get_profile.dart';
+import 'package:rent_my_fit/features/profile/domain/usecases/update_profile.dart';
+import 'package:rent_my_fit/features/profile/presentation/view%20model/profile_view_model.dart';
+
 
 final sl = GetIt.instance;
 
@@ -20,6 +24,8 @@ Future<void> init() async {
 
   sl.registerLazySingleton<UserRepository>(() => UserRemoteRepositoryImpl(http.Client()));
   sl.registerLazySingleton<ProductRepository>(() => ProductRepositoryImpl(baseUrl: baseUrl));
+  sl.registerLazySingleton(() => GetProfile(sl()));
+  sl.registerLazySingleton(() => UpdateProfile(sl()));
 
   sl.registerLazySingleton(() => LoginUser(sl()));
   sl.registerLazySingleton(() => RegisterUser(sl()));
@@ -28,8 +34,16 @@ Future<void> init() async {
   sl.registerFactory(() => RegisterViewModel(sl()));
   sl.registerFactory(() => ProductViewModel(sl()));
 
+  sl.registerFactory(
+  () => ProfileViewModel(
+    sl<GetProfile>(),
+    sl<UpdateProfile>(),
+  ),
+);
+
   sl.registerLazySingleton(() => CartViewModel(
         baseUrl: "$baseUrl/auth", 
         token: authToken ?? "",
       ));
+      
 }
