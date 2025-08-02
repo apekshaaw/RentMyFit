@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rent_my_fit/app/service_locator.dart';
+import 'package:rent_my_fit/app/theme_notifier.dart';
 import 'package:rent_my_fit/features/auth/presentation/view/login_view.dart';
 import 'package:rent_my_fit/features/cart/presentation/view model/cart_event.dart';
 import 'package:rent_my_fit/features/cart/presentation/view model/cart_view_model.dart';
@@ -12,6 +13,10 @@ import 'package:rent_my_fit/features/home/presentation/view_model/product_view_m
 import 'package:rent_my_fit/features/profile/presentation/view/profile_view.dart';
 import 'package:rent_my_fit/features/wishlist/presentation/view/wishlist_view.dart';
 
+// ✅ Import your sensor services
+import 'package:rent_my_fit/sensors/shake_service.dart';
+import 'package:rent_my_fit/sensors/proximity_service.dart';
+
 class DashboardView extends StatelessWidget {
   final bool isAdmin;
 
@@ -19,10 +24,17 @@ class DashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<ProductViewModel>(
-      create: (_) => sl<ProductViewModel>()
-        ..fetchProducts()
-        ..fetchWishlist(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<ProductViewModel>(
+          create: (_) => sl<ProductViewModel>()
+            ..fetchProducts()
+            ..fetchWishlist(),
+        ),
+        BlocProvider<CartViewModel>(
+          create: (_) => sl<CartViewModel>()..add(LoadCart()),
+        ),
+      ],
       child: DashboardContent(isAdmin: isAdmin),
     );
   }
@@ -39,6 +51,36 @@ class DashboardContent extends StatefulWidget {
 
 class _DashboardContentState extends State<DashboardContent> {
   int _selectedIndex = 0;
+  String? profileImageUrl; // Track profile image if updated
+
+  @override
+  void initState() {
+    super.initState();
+
+    // ✅ Start Shake Listener
+    ShakeService().start();
+    ShakeService().onShake.listen((_) {
+      _showLogoutDialog(context);
+    });
+
+    // ✅ Start Proximity Listener
+    ProximityService().start();
+    ProximityService().onProximity.listen((isNear) {
+      if (isNear) {
+        themeNotifier.toggleTheme();
+      }
+    });
+
+    // TODO: Load your profile image from Hive, API, or local storage
+    // Example: profileImageUrl = await UserLocalDataSource().getProfileImage();
+  }
+
+  @override
+  void dispose() {
+    ShakeService().dispose();
+    ProximityService().dispose();
+    super.dispose();
+  }
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -77,31 +119,57 @@ class _DashboardContentState extends State<DashboardContent> {
 
   @override
   Widget build(BuildContext context) {
-    // Only three real tabs; profile is handled onTap
     final tabs = [
       _buildHomeTab(),
       const WishlistView(),
       BlocProvider.value(
-        value: context.read<CartViewModel>()..add(FetchCart()),
+        value: context.read<CartViewModel>()..add(LoadCart()),
         child: const CartView(),
       ),
-      const ProfileView(),
     ];
 
     return Scaffold(
-      appBar: (_selectedIndex == 0)
+      appBar: _selectedIndex == 0
           ? AppBar(
               title: const Text('DASHBOARD'),
               backgroundColor: const Color(0xFFab1d79),
               centerTitle: true,
               automaticallyImplyLeading: false,
               actions: [
-                // Profile button opens the slide-in drawer
+                // 🌙 / ☀️ Theme toggle button
                 IconButton(
-                  icon: const Icon(Icons.person_outline, color: Colors.white),
-                  onPressed: () => Navigator.of(context).pushNamed('/profile'),
+                  icon: ValueListenableBuilder<ThemeMode>(
+                    valueListenable: themeNotifier,
+                    builder: (_, mode, __) {
+                      return Icon(
+                        mode == ThemeMode.dark
+                            ? Icons.wb_sunny_outlined
+                            : Icons.nights_stay_outlined,
+                        color: Colors.white,
+                      );
+                    },
+                  ),
+                  onPressed: () => themeNotifier.toggleTheme(),
                 ),
-                // Logout button
+
+                // ✅ Dynamic profile button with fallback icon
+                IconButton(
+                  icon: profileImageUrl != null
+                      ? CircleAvatar(
+                          backgroundImage: NetworkImage(profileImageUrl!),
+                          radius: 15,
+                        )
+                      : const Icon(Icons.person_outline, color: Colors.white),
+                  onPressed: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ProfileView()),
+                    );
+                    // Reload image after returning from profile page
+                    setState(() {
+                      // profileImageUrl = reload from storage if updated
+                    });
+                  },
+                ),
                 IconButton(
                   icon: const Icon(Icons.logout, color: Colors.white),
                   onPressed: () => _showLogoutDialog(context),
@@ -109,7 +177,10 @@ class _DashboardContentState extends State<DashboardContent> {
               ],
             )
           : null,
-      body: tabs[_selectedIndex],
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: tabs,
+      ),
       floatingActionButton: widget.isAdmin && _selectedIndex == 0
           ? FloatingActionButton(
               backgroundColor: const Color(0xFFab1d79),
@@ -127,9 +198,7 @@ class _DashboardContentState extends State<DashboardContent> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(30),
-            boxShadow: const [
-              BoxShadow(color: Color(0x80123456), blurRadius: 10),
-            ],
+            boxShadow: const [BoxShadow(color: Color(0x80123456), blurRadius: 10)],
           ),
           child: BottomNavigationBar(
             currentIndex: _selectedIndex,
@@ -142,7 +211,6 @@ class _DashboardContentState extends State<DashboardContent> {
             showUnselectedLabels: false,
             onTap: (index) {
               if (index == 3) {
-                // Profile icon tapped
                 Navigator.of(context).pushNamed('/profile');
               } else {
                 setState(() => _selectedIndex = index);
@@ -259,8 +327,7 @@ class _DashboardContentState extends State<DashboardContent> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) =>
-                                    ProductDetailView(product: product),
+                                builder: (_) => ProductDetailView(product: product),
                               ),
                             );
                           },
@@ -295,8 +362,7 @@ class _DashboardContentState extends State<DashboardContent> {
                 await viewModel.toggleWishlist(product.id);
                 await viewModel.fetchWishlist();
                 setState(() {});
-                final updatedFavorite =
-                    viewModel.isInWishlist(product.id);
+                final updatedFavorite = viewModel.isInWishlist(product.id);
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

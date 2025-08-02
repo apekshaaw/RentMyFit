@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:rent_my_fit/app/service_locator.dart';
+import 'package:rent_my_fit/core/network/api_base_url.dart';
 import 'package:rent_my_fit/features/auth/domain/entity/user_entity.dart'
     as user_entity;
 import 'package:rent_my_fit/features/auth/domain/repository/user_repository.dart';
@@ -13,11 +14,14 @@ class UserRemoteRepositoryImpl implements UserRepository {
   final http.Client client;
 
   UserRemoteRepositoryImpl(this.client);
+  
+  final baseUrl = getBaseUrl();
+
 
   @override
   Future<void> registerUser(user_entity.UserEntity user) async {
     final response = await client.post(
-      Uri.parse('http://10.0.2.2:5000/api/auth/register'),
+      Uri.parse('$baseUrl/auth/register'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'name': user.name,
@@ -42,8 +46,8 @@ class UserRemoteRepositoryImpl implements UserRepository {
 
     final response = await client.post(
       Uri.parse(isAdminLogin
-          ? 'http://10.0.2.2:5000/api/auth/admin-login'
-          : 'http://10.0.2.2:5000/api/auth/login'),
+    ? '$baseUrl/auth/admin-login'
+    : '$baseUrl/auth/login'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
@@ -72,7 +76,7 @@ class UserRemoteRepositoryImpl implements UserRepository {
     }
 
     final response = await client.get(
-      Uri.parse('http://10.0.2.2:5000/api/auth/profile'),
+      Uri.parse('$baseUrl/auth/profile'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -87,7 +91,7 @@ class UserRemoteRepositoryImpl implements UserRepository {
     final body = jsonDecode(response.body) as Map<String, dynamic>;
     final raw = body['profileImage'] as String?;
     final photoUrl = (raw != null && raw.isNotEmpty)
-        ? 'http://10.0.2.2:5000$raw'
+        ? '$baseUrl$raw'
         : null;
 
     return profile_entity.ProfileEntity(
@@ -106,7 +110,7 @@ class UserRemoteRepositoryImpl implements UserRepository {
       throw Exception('No token, authorization denied');
     }
 
-    final uri = Uri.parse('http://10.0.2.2:5000/api/auth/profile');
+    final uri = Uri.parse('$baseUrl/auth/profile');
 
     // If photoUrl is a local filesystem path (new image), do multipart
     if (profile.photoUrl != null &&

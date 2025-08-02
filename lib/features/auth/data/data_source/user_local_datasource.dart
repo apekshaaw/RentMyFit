@@ -1,8 +1,10 @@
 import 'package:hive/hive.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../model/user_hive_model.dart';
 
 class UserLocalDatasource {
   final Box<UserHiveModel> userBox;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   UserLocalDatasource(this.userBox);
 
@@ -19,12 +21,17 @@ class UserLocalDatasource {
   /// Fetch the currently logged-in user (assume last entry is current user)
   Future<UserHiveModel?> getCurrentUser() async {
     if (userBox.isEmpty) return null;
-    // Get the last saved user (simple approach)
     return userBox.values.last;
   }
 
-  /// Optionally update an existing user
+  /// Update user
   Future<void> updateUser(UserHiveModel user) async {
     await user.save();
   }
+
+  /// ✅ Retrieve token for API requests
+  Future<String?> getToken() async {
+  final user = await getCurrentUser();
+  return user?.token;
+}
 }

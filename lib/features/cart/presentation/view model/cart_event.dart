@@ -1,26 +1,39 @@
 import 'package:equatable/equatable.dart';
+import 'package:rent_my_fit/features/cart/domain/entity/cart_item_entity.dart';
 
 abstract class CartEvent extends Equatable {
+  const CartEvent();
+
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
-class FetchCart extends CartEvent {}
+class LoadCart extends CartEvent {}
 
-class AddToCart extends CartEvent {
+class AddItemToCart extends CartEvent {
+  final CartItemEntity item;
+
+  const AddItemToCart(this.item);
+
+  @override
+  List<Object?> get props => [item];
+}
+
+class RemoveItemFromCart extends CartEvent {
   final String productId;
-  AddToCart(this.productId);
+
+  const RemoveItemFromCart(this.productId);
+
+  @override
+  List<Object?> get props => [productId];
 }
 
-class UpdateCartQuantity extends CartEvent {
+class UpdateCartItemQuantity extends CartEvent {
   final String productId;
   final int quantity;
-  UpdateCartQuantity(this.productId, this.quantity);
-}
 
-class RemoveFromCart extends CartEvent {
-  final String productId;
-  RemoveFromCart(this.productId);
-}
+  const UpdateCartItemQuantity({required this.productId, required this.quantity});
 
-class ClearCart extends CartEvent {}
+  @override
+  List<Object?> get props => [productId, quantity];
+}

@@ -14,10 +14,14 @@ class UserHiveModel extends HiveObject {
   @HiveField(2)
   String password;
 
+  @HiveField(3)
+  String token; // ✅ NEW FIELD
+
   UserHiveModel({
     required this.name,
     required this.email,
     required this.password,
+    required this.token,
   });
 
   UserEntity toEntity() {
@@ -25,6 +29,7 @@ class UserHiveModel extends HiveObject {
       name: name,
       email: email,
       password: password,
+      token: token, // ✅ map it
     );
   }
 
@@ -33,6 +38,7 @@ class UserHiveModel extends HiveObject {
       name: entity.name,
       email: entity.email,
       password: entity.password,
+      token: entity.token ?? '',
     );
   }
 }

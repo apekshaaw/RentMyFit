@@ -19,13 +19,13 @@ class UserRemoteDatasource {
     final response = await client.post(
       Uri.parse('http://localhost:5000/api/auth/register'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({'name': name, 'email': email, 'password': password}),
+      body: json.encode({'name': name, 'email': email, 'password': password,}),
     );
 
     final body = json.decode(response.body);
 
     if (response.statusCode == 201) {
-      return UserHiveModel(name: name, email: email, password: password);
+      return UserHiveModel(name: name, email: email, password: password, token: '',);
     } else {
       throw Exception(body['message'] ?? 'Registration failed');
     }
@@ -49,6 +49,7 @@ class UserRemoteDatasource {
         name: body['user']['name'],
         email: body['user']['email'],
         password: password,
+        token: token
       );
     } else {
       throw Exception(body['message'] ?? 'Login failed');
