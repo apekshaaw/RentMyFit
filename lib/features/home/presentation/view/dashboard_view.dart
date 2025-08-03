@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rent_my_fit/app/service_locator.dart';
 import 'package:rent_my_fit/app/theme_notifier.dart';
+import 'package:rent_my_fit/core/network/image_url.dart';
 import 'package:rent_my_fit/features/auth/presentation/view/login_view.dart';
 import 'package:rent_my_fit/features/cart/presentation/view model/cart_event.dart';
 import 'package:rent_my_fit/features/cart/presentation/view model/cart_view_model.dart';
@@ -21,7 +22,7 @@ import 'package:rent_my_fit/sensors/shake_service.dart';
 class DashboardView extends StatelessWidget {
   final bool isAdmin;
 
-  const DashboardView({Key? key, required this.isAdmin}) : super(key: key);
+  const DashboardView({super.key, required this.isAdmin});
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +45,7 @@ class DashboardView extends StatelessWidget {
 class DashboardContent extends StatefulWidget {
   final bool isAdmin;
 
-  const DashboardContent({Key? key, required this.isAdmin}) : super(key: key);
+  const DashboardContent({super.key, required this.isAdmin});
 
   @override
   State<DashboardContent> createState() => _DashboardContentState();
@@ -271,34 +272,54 @@ class _DashboardContentState extends State<DashboardContent> {
   }
 
   Widget _buildProductCard(
-    ProductModel product,
-    bool isFavorite,
-    ProductViewModel viewModel,
-    BuildContext context,
-  ) {
-    return StatefulBuilder(
-      builder: (context, setState) => Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: const Color(0xFFF3F3F3),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(20),
-                    ),
-                    child: Image.network(
-                      product.imageUrl,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
+  ProductModel product,
+  bool isFavorite,
+  ProductViewModel viewModel,
+  BuildContext context,
+) {
+  return StatefulBuilder(
+    builder: (context, setState) => Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: const Color(0xFFF3F3F3),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                  child: FutureBuilder<String>(
+                    future: buildImageUrl(product.imageUrl),
+                    builder: (ctx, snap) {
+                      if (!snap.hasData) {
+                        return const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        );
+                      }
+                      final url = snap.data!;
+                      debugPrint('📷 Card image URL: $url');
+                      return Image.network(
+                        url,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, err, stack) {
+                          debugPrint('⚠️ Card image load error: $err');
+                          return const Icon(
+                            Icons.broken_image,
+                            size: 48,
+                            color: Colors.grey,
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
+              ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Column(

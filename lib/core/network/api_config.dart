@@ -1,4 +1,5 @@
 /// lib/core/network/api_config.dart
+library;
 
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';

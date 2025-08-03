@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:rent_my_fit/core/network/image_url.dart';
 import 'package:rent_my_fit/features/home/data/models/product_model.dart';
 import '../view_model/product_view_model.dart';
 
@@ -94,7 +95,8 @@ class _AddProductFormState extends State<AddProductForm> {
     final isEditMode = widget.existingProduct != null;
 
     return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: const Color(0xFFE3F2FD),
       title: Text(
         isEditMode ? 'Update Product' : 'Add Product',
@@ -113,12 +115,49 @@ class _AddProductFormState extends State<AddProductForm> {
                   child: _imageFile != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: Image.file(_imageFile!, height: 140, fit: BoxFit.cover),
+                          child: Image.file(_imageFile!,
+                              height: 140, fit: BoxFit.cover),
                         )
-                      : (_existingImageUrl != null && _existingImageUrl!.isNotEmpty)
+                      : (_existingImageUrl != null &&
+                              _existingImageUrl!.isNotEmpty)
+                          // 🔥 Wrap this network image 🔥
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(10),
-                              child: Image.network(_existingImageUrl!, height: 140, fit: BoxFit.cover),
+                              child: FutureBuilder<String>(
+                                future:
+                                    buildImageUrl(_existingImageUrl!),
+                                builder: (ctx, snap) {
+                                  if (!snap.hasData) {
+                                    return const SizedBox(
+                                      height: 140,
+                                      child: Center(
+                                          child:
+                                              CircularProgressIndicator()),
+                                    );
+                                  }
+                                  final url = snap.data!;
+                                  debugPrint(
+                                      '📷 Edit form image URL: $url');
+                                  return Image.network(
+                                    url,
+                                    height: 140,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (c, err, stack) {
+                                      debugPrint(
+                                          '⚠️ Edit image load error: $err');
+                                      return const SizedBox(
+                                        height: 140,
+                                        child: Center(
+                                            child: Icon(
+                                                Icons
+                                                    .broken_image,
+                                                size: 48)),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
                             )
                           : Container(
                               height: 140,

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rent_my_fit/core/network/image_url.dart';              // ← new helper
+import 'package:rent_my_fit/features/cart/presentation/view model/cart_view_model.dart';
+import 'package:rent_my_fit/features/cart/presentation/view model/cart_event.dart';
 import 'package:rent_my_fit/features/cart/domain/entity/cart_item_entity.dart';
-import 'package:rent_my_fit/features/cart/presentation/view%20model/cart_event.dart';
-import 'package:rent_my_fit/features/cart/presentation/view%20model/cart_view_model.dart';
 import 'package:rent_my_fit/features/home/data/models/product_model.dart';
 
 class ProductDetailView extends StatefulWidget {
@@ -21,7 +22,6 @@ class _ProductDetailViewState extends State<ProductDetailView> {
   @override
   Widget build(BuildContext context) {
     final product = widget.product;
-    // Grab the one-and-only CartViewModel provided at the top of the Dashboard
     final cartBloc = context.read<CartViewModel>();
 
     return Scaffold(
@@ -33,13 +33,36 @@ class _ProductDetailViewState extends State<ProductDetailView> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          // (You had a wishlist button here; leave it as-is if you wish)
-        ],
       ),
       body: Column(
         children: [
-          Image.network(product.imageUrl, height: 200, fit: BoxFit.contain),
+          // 🔥 Image loader with FutureBuilder 🔥
+          FutureBuilder<String>(
+            future: buildImageUrl(product.imageUrl),
+            builder: (ctx, snap) {
+              if (!snap.hasData) {
+                return const SizedBox(
+                  height: 200,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              final url = snap.data!;
+              debugPrint('📷 Detail image URL: $url');
+              return Image.network(
+                url,
+                height: 200,
+                fit: BoxFit.contain,
+                errorBuilder: (_, err, __) {
+                  debugPrint('⚠️ Detail image load error: $err');
+                  return const SizedBox(
+                    height: 200,
+                    child: Center(child: Icon(Icons.broken_image, size: 48)),
+                  );
+                },
+              );
+            },
+          ),
+
           const SizedBox(height: 12),
           Expanded(
             child: Container(
@@ -77,9 +100,9 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                   // --- Rating placeholder ---
                   const Row(
                     children: [
-                      Icon(Icons.star, color: Colors.amber, size: 16),
-                      Icon(Icons.star, color: Colors.amber, size: 16),
-                      Icon(Icons.star, color: Colors.amber, size: 16),
+                      Icon(Icons.star,   color: Colors.amber, size: 16),
+                      Icon(Icons.star,   color: Colors.amber, size: 16),
+                      Icon(Icons.star,   color: Colors.amber, size: 16),
                       Icon(Icons.star_half, color: Colors.amber, size: 16),
                       Icon(Icons.star_border, color: Colors.amber, size: 16),
                       SizedBox(width: 4),
@@ -147,26 +170,25 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                   ),
                   const SizedBox(height: 30),
 
-                  // --- ADD TO CART button (updated) ---
+                  // --- ADD TO CART button ---
                   ElevatedButton.icon(
                     icon: const Icon(Icons.shopping_bag),
+                    label: const Text("ADD TO CART"),
                     onPressed: selectedSize != null && quantity > 0
                         ? () {
                             // 1️⃣ Add the item
                             final cartItem = CartItemEntity(
-                              id: product.id,
-                              name: product.name,
+                              id:       product.id,
+                              name:     product.name,
                               imageUrl: product.imageUrl,
-                              price: product.price,
-                              size: selectedSize!,
+                              price:    product.price,
+                              size:     selectedSize!,
                               quantity: quantity,
                             );
                             cartBloc.add(AddItemToCart(cartItem));
-
-                            // 2️⃣ Immediately reload the cart contents
                             cartBloc.add(LoadCart());
 
-                            // 3️⃣ Feedback & navigate back home
+                            // 2️⃣ Feedback & navigate back home
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: const Row(
@@ -190,7 +212,6 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                             });
                           }
                         : null,
-                    label: const Text("ADD TO CART"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFab1d79),
                       disabledBackgroundColor: Colors.grey.shade400,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rent_my_fit/core/network/image_url.dart';
 import 'package:rent_my_fit/features/home/data/models/product_model.dart';
 import 'package:rent_my_fit/features/home/presentation/view_model/product_view_model.dart';
 
@@ -45,33 +46,55 @@ class WishlistView extends StatelessWidget {
   }
 
   Widget _buildWishlistCard(BuildContext context, ProductModel product) {
-    final viewModel = context.read<ProductViewModel>();
+  final viewModel = context.read<ProductViewModel>();
 
-    return StatefulBuilder(
-      builder: (context, setState) {
-        bool isFavorite = viewModel.isInWishlist(product.id);
+  return StatefulBuilder(
+    builder: (context, setState) {
+      bool isFavorite = viewModel.isInWishlist(product.id);
 
-        return Stack(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: const Color(0xFFF3F3F3),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(20)),
-                      child: Image.network(
-                        product.imageUrl,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
+      return Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: const Color(0xFFF3F3F3),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 🔥 IMAGE LOADER 🔥
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                    child: FutureBuilder<String>(
+                      future: buildImageUrl(product.imageUrl),
+                      builder: (ctx, snap) {
+                        if (!snap.hasData) {
+                          return const Center(
+                            child:
+                                CircularProgressIndicator(strokeWidth: 2),
+                          );
+                        }
+                        final url = snap.data!;
+                        debugPrint('📷 Wishlist image URL: $url');
+                        return Image.network(
+                          url,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (c, err, st) {
+                            debugPrint(
+                                '⚠️ Wishlist image load error: $err');
+                            return const Center(
+                                child:
+                                    Icon(Icons.broken_image, size: 48));
+                          },
+                        );
+                      },
                     ),
                   ),
+                ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Column(
