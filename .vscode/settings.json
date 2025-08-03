@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "C:/Users/User/rent_my_fit/windows/flutter"
+    "cmake.sourceDirectory": "C:/Users/User/rent_my_fit/windows/flutter",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

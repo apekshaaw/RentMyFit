@@ -1,5 +1,4 @@
 import 'package:rent_my_fit/features/auth/data/data_source/user_remote_datasource.dart';
-import 'package:rent_my_fit/features/auth/data/model/user_hive_model.dart';
 import 'package:rent_my_fit/features/auth/domain/entity/user_entity.dart';
 import 'package:rent_my_fit/features/profile/domain/entity/profile_entity.dart';
 import 'package:rent_my_fit/features/auth/domain/repository/user_repository.dart';

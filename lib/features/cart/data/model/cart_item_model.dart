@@ -3,20 +3,13 @@ import '../../domain/entity/cart_item_entity.dart';
 
 class CartItemModel extends CartItemEntity {
   CartItemModel({
-    required String id,
-    required String name,
-    required String imageUrl,
-    required double price,
-    required String size,
-    required int quantity,
-  }) : super(
-          id: id,
-          name: name,
-          imageUrl: imageUrl,
-          price: price,
-          size: size,
-          quantity: quantity,
-        );
+    required super.id,
+    required super.name,
+    required super.imageUrl,
+    required super.price,
+    required super.size,
+    required super.quantity,
+  });
 
   factory CartItemModel.fromJson(Map<String, dynamic> json) {
     return CartItemModel(

@@ -1,6 +1,5 @@
 // lib/features/profile/domain/entity/profile_entity.dart
 
-import 'dart:convert';
 
 class ProfileEntity {
   final String? id;

@@ -8,7 +8,7 @@ import 'package:rent_my_fit/features/home/data/models/product_model.dart';
 class ProductDetailView extends StatefulWidget {
   final ProductModel product;
 
-  const ProductDetailView({Key? key, required this.product}) : super(key: key);
+  const ProductDetailView({super.key, required this.product});
 
   @override
   State<ProductDetailView> createState() => _ProductDetailViewState();

@@ -6,7 +6,7 @@ import 'package:rent_my_fit/features/cart/presentation/view%20model/cart_state.d
 import 'package:rent_my_fit/features/cart/presentation/view%20model/cart_view_model.dart';
 
 class CartView extends StatelessWidget {
-  const CartView({Key? key}) : super(key: key);
+  const CartView({super.key});
 
   @override
   Widget build(BuildContext context) {

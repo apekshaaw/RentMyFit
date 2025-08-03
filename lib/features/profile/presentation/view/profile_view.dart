@@ -10,7 +10,7 @@ import 'package:rent_my_fit/features/profile/presentation/view%20model/profile_s
 import 'package:rent_my_fit/features/profile/presentation/view%20model/profile_view_model.dart';
 
 class ProfileView extends StatelessWidget {
-  const ProfileView({Key? key}) : super(key: key);
+  const ProfileView({super.key});
 
   ImageProvider<Object>? _avatarProvider(String? photoUrl) {
     if (photoUrl == null || photoUrl.isEmpty) return null;
@@ -348,10 +348,10 @@ class ProfileView extends StatelessWidget {
                           content: Text('Password updated (dummy)')),
                     );
                   },
-                  child: const Text('Change Password'),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(40),
                   ),
+                  child: const Text('Change Password'),
                 ),
               ],
             ),
@@ -583,10 +583,10 @@ class ProfileView extends StatelessWidget {
                               UpdateProfileEvent(updated),
                             );
                       },
-                      child: const Text('Update'),
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size.fromHeight(40),
                       ),
+                      child: const Text('Update'),
                     ),
                   ],
                 ),

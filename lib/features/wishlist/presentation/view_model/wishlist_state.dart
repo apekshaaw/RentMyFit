@@ -11,5 +11,5 @@ class WishlistInitial extends WishlistState {
 }
 
 class WishlistUpdated extends WishlistState {
-  const WishlistUpdated({required List<ProductModel> wishlist}) : super(wishlist: wishlist);
+  const WishlistUpdated({required super.wishlist});
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:rent_my_fit/core/network/api_config.dart';
 import 'package:rent_my_fit/features/auth/data/model/user_hive_model.dart';
 import 'package:rent_my_fit/features/profile/data/models/user_model.dart';
 import 'package:rent_my_fit/features/profile/domain/entity/profile_entity.dart';
@@ -16,40 +17,49 @@ class UserRemoteDatasource {
     String email,
     String password,
   ) async {
+    final base = await ApiConfig.baseUrl;
+    final uri  = Uri.parse('$base/auth/register');
+
     final response = await client.post(
-      Uri.parse('http://localhost:5000/api/auth/register'),
+      uri,
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({'name': name, 'email': email, 'password': password,}),
+      body: json.encode({'name': name, 'email': email, 'password': password}),
     );
 
     final body = json.decode(response.body);
-
     if (response.statusCode == 201) {
-      return UserHiveModel(name: name, email: email, password: password, token: '',);
+      return UserHiveModel(
+        name: name,
+        email: email,
+        password: password,
+        token: '',
+      );
     } else {
       throw Exception(body['message'] ?? 'Registration failed');
     }
   }
 
   Future<UserHiveModel> login(String email, String password) async {
+    final base = await ApiConfig.baseUrl;
+    final uri = Uri.parse('$base/auth/login');
+    print('👉 POST login to: $uri');
+
     final response = await client.post(
-      Uri.parse('http://localhost:5000/api/auth/login'),
+      uri,
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'email': email, 'password': password}),
     );
 
     final body = json.decode(response.body);
-
     if (response.statusCode == 200) {
-      // Save token securely
-      final token = body['token'];
+      final token = body['token'] as String;
       await secureStorage.write(key: 'token', value: token);
 
       return UserHiveModel(
-        name: body['user']['name'],
-        email: body['user']['email'],
+        name: body['user']['name'] as String,
+        email: body['user']['email'] as String,
         password: password,
-        token: token
+        token: token,
       );
     } else {
       throw Exception(body['message'] ?? 'Login failed');
@@ -57,9 +67,12 @@ class UserRemoteDatasource {
   }
 
   Future<ProfileEntity> fetchProfile() async {
+    final base = await ApiConfig.baseUrl;
     final token = await secureStorage.read(key: 'token');
+    final uri = Uri.parse('$base/auth/profile');
+
     final response = await client.get(
-      Uri.parse('http://localhost:5000/api/auth/profile'),
+      uri,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -67,7 +80,6 @@ class UserRemoteDatasource {
     );
 
     final body = json.decode(response.body);
-
     if (response.statusCode == 200) {
       final userModel = UserModel.fromJson(body['user'] ?? body);
       return userModel.toEntity();
@@ -77,32 +89,32 @@ class UserRemoteDatasource {
   }
 
   Future<void> updateProfile(ProfileEntity entity) async {
-  final token = await secureStorage.read(key: 'token');
-  final model = UserModel.fromEntity(entity);
+    final base = await ApiConfig.baseUrl;
+    final token = await secureStorage.read(key: 'token');
+    final model = UserModel.fromEntity(entity);
 
-  // 👇 Debug print to log the request body
-  print("Sending updated profile: ${json.encode(model.toJson())}");
+    // Debug
+    print('Sending updated profile: ${json.encode(model.toJson())}');
 
-  final response = await client.put(
-    Uri.parse('http://localhost:5000/api/auth/profile'),
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    },
-    body: json.encode(model.toJson()),
-  );
+    final uri = Uri.parse('$base/auth/profile');
+    final response = await client.put(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: json.encode(model.toJson()),
+    );
 
-  if (response.statusCode == 200) {
-    // Success - do nothing or handle accordingly
-    return;
-  } else {
-    // Attempt to decode error or show raw error message
-    try {
-      final body = json.decode(response.body);
-      throw Exception(body['message'] ?? 'Failed to update profile');
-    } catch (e) {
-      throw Exception('Unexpected server response: ${response.body}');
+    if (response.statusCode == 200) {
+      return;
+    } else {
+      try {
+        final body = json.decode(response.body);
+        throw Exception(body['message'] ?? 'Failed to update profile');
+      } catch (_) {
+        throw Exception('Unexpected server response: ${response.body}');
+      }
     }
   }
-}
 }

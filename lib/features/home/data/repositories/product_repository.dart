@@ -1,7 +1,11 @@
+// lib/features/home/data/repositories/product_repository_impl.dart
+
 import 'dart:convert';
 import 'dart:io';
-import 'package:http/http.dart' as http;
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+import 'package:rent_my_fit/core/network/api_config.dart';
 import 'package:rent_my_fit/features/home/data/models/product_model.dart';
 
 abstract class ProductRepository {
@@ -16,14 +20,20 @@ abstract class ProductRepository {
 }
 
 class ProductRepositoryImpl implements ProductRepository {
-  final String baseUrl;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  ProductRepositoryImpl({required this.baseUrl});
+  ProductRepositoryImpl();
+
+  /// Helper to read the stored JWT
+  Future<String?> _getToken() async {
+    return await _storage.read(key: 'token');
+  }
 
   @override
   Future<List<ProductModel>> fetchProducts() async {
-    final res = await http.get(Uri.parse('$baseUrl/products'));
+    final base = await ApiConfig.baseUrl;
+    final uri  = Uri.parse('$base/products');
+    final res  = await http.get(uri);
 
     if (res.statusCode == 200) {
       final List<dynamic> data = jsonDecode(res.body);
@@ -35,23 +45,22 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<void> addProduct(ProductModel product, File imageFile) async {
-    final uri = Uri.parse('$baseUrl/products');
-    final request = http.MultipartRequest('POST', uri);
-
-    final token = await _storage.read(key: 'token');
+    final base  = await ApiConfig.baseUrl;
+    final uri   = Uri.parse('$base/products');
+    final token = await _getToken();
     if (token == null) throw Exception('No token found. Please log in again.');
 
-    request.fields['name'] = product.name;
-    request.fields['description'] = product.description;
-    request.fields['price'] = product.price.toString();
-    request.fields['category'] = product.category;
-    request.fields['sizes'] = jsonEncode(product.sizes);
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields['name']        = product.name
+      ..fields['description'] = product.description
+      ..fields['price']       = product.price.toString()
+      ..fields['category']    = product.category
+      ..fields['sizes']       = jsonEncode(product.sizes)
+      ..files.add(await http.MultipartFile.fromPath('image', imageFile.path));
 
-    request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
-    request.headers['Authorization'] = 'Bearer $token';
-
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
 
     if (response.statusCode != 201) {
       throw Exception('Failed to add product: ${response.body}');
@@ -60,11 +69,12 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<void> deleteProduct(String productId) async {
-    final token = await _storage.read(key: 'token');
+    final base  = await ApiConfig.baseUrl;
+    final token = await _getToken();
     if (token == null) throw Exception('No token found. Please log in again.');
 
     final res = await http.delete(
-      Uri.parse('$baseUrl/products/$productId'),
+      Uri.parse('$base/products/$productId'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -74,30 +84,28 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
-  Future<void> updateProduct(ProductModel product, [File? newImage]) async {
-    final uri = Uri.parse('$baseUrl/products/${product.id}');
-    final request = http.MultipartRequest('PUT', uri);
-
-    final token = await _storage.read(key: 'token');
+  Future<void> updateProduct(ProductModel product, File? newImage) async {
+    final base  = await ApiConfig.baseUrl;
+    final token = await _getToken();
     if (token == null) throw Exception('No token found. Please log in again.');
 
-    request.fields['name'] = product.name;
-    request.fields['description'] = product.description;
-    request.fields['price'] = product.price.toString();
-    request.fields['category'] = product.category;
-    request.fields['sizes'] = jsonEncode(product.sizes);
+    final uri = Uri.parse('$base/products/${product.id}');
+    final request = http.MultipartRequest('PUT', uri)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields['name']        = product.name
+      ..fields['description'] = product.description
+      ..fields['price']       = product.price.toString()
+      ..fields['category']    = product.category
+      ..fields['sizes']       = jsonEncode(product.sizes);
 
     if (newImage != null) {
       request.files.add(await http.MultipartFile.fromPath('image', newImage.path));
     }
 
-    request.headers['Authorization'] = 'Bearer $token';
-
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
 
     if (response.statusCode != 200) {
-      print('Response Body: ${response.body}');
       throw Exception('Failed to update product: ${response.body}');
     }
   }
@@ -105,11 +113,12 @@ class ProductRepositoryImpl implements ProductRepository {
   // ✅ Wishlist: Fetch user's wishlist products
   @override
   Future<List<ProductModel>> fetchWishlist() async {
-    final token = await _storage.read(key: 'token');
+    final base  = await ApiConfig.baseUrl;
+    final token = await _getToken();
     if (token == null) throw Exception('No token found. Please log in again.');
 
     final res = await http.get(
-      Uri.parse('$baseUrl/auth/wishlist'),
+      Uri.parse('$base/auth/wishlist'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -124,13 +133,14 @@ class ProductRepositoryImpl implements ProductRepository {
   // ✅ Wishlist: Toggle add/remove from wishlist
   @override
   Future<void> toggleWishlist(String productId) async {
-    final token = await _storage.read(key: 'token');
+    final base  = await ApiConfig.baseUrl;
+    final token = await _getToken();
     if (token == null) throw Exception('No token found. Please log in again.');
 
     final res = await http.post(
-      Uri.parse('$baseUrl/auth/wishlist'),
+      Uri.parse('$base/auth/wishlist'),
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type' : 'application/json',
         'Authorization': 'Bearer $token',
       },
       body: jsonEncode({'productId': productId}),

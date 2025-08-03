@@ -1,9 +1,10 @@
 // lib/features/auth/data/repository/user_remote_repository_impl.dart
 
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:rent_my_fit/app/service_locator.dart';
-import 'package:rent_my_fit/core/network/api_base_url.dart';
+import 'package:rent_my_fit/core/network/api_config.dart';
 import 'package:rent_my_fit/features/auth/domain/entity/user_entity.dart'
     as user_entity;
 import 'package:rent_my_fit/features/auth/domain/repository/user_repository.dart';
@@ -14,14 +15,16 @@ class UserRemoteRepositoryImpl implements UserRepository {
   final http.Client client;
 
   UserRemoteRepositoryImpl(this.client);
-  
-  final baseUrl = getBaseUrl();
-
 
   @override
   Future<void> registerUser(user_entity.UserEntity user) async {
+    // 1️⃣ Fetch dynamic base URL
+    final base = await ApiConfig.baseUrl;
+    // 2️⃣ Build URI
+    final uri = Uri.parse('$base/auth/register');
+
     final response = await client.post(
-      Uri.parse('$baseUrl/auth/register'),
+      uri,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'name': user.name,
@@ -38,16 +41,20 @@ class UserRemoteRepositoryImpl implements UserRepository {
 
   @override
   Future<user_entity.UserEntity> loginUser(
-      String email,
-      String password,
+    String email,
+    String password,
   ) async {
+    // preserve your existing admin-login logic
     final isAdminLogin =
         email == 'admin@rentmyfit.com' && password == 'admin1234';
 
+    // fetch base & pick correct path
+    final base = await ApiConfig.baseUrl;
+    final path = isAdminLogin ? '/auth/admin-login' : '/auth/login';
+    final uri = Uri.parse('$base$path');
+
     final response = await client.post(
-      Uri.parse(isAdminLogin
-    ? '$baseUrl/auth/admin-login'
-    : '$baseUrl/auth/login'),
+      uri,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
@@ -56,7 +63,7 @@ class UserRemoteRepositoryImpl implements UserRepository {
     if (response.statusCode == 200) {
       final u = data['user'];
       return user_entity.UserEntity(
-        id:      u['id'] ?? u['_id'],
+        id:      u['id']    ?? u['_id'],
         name:    u['name'],
         email:   u['email'],
         password:'',
@@ -75,8 +82,12 @@ class UserRemoteRepositoryImpl implements UserRepository {
       throw Exception('No token, authorization denied');
     }
 
+    // fetch base & build profile URI
+    final base = await ApiConfig.baseUrl;
+    final uri  = Uri.parse('$base/auth/profile');
+
     final response = await client.get(
-      Uri.parse('$baseUrl/auth/profile'),
+      uri,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -91,7 +102,7 @@ class UserRemoteRepositoryImpl implements UserRepository {
     final body = jsonDecode(response.body) as Map<String, dynamic>;
     final raw = body['profileImage'] as String?;
     final photoUrl = (raw != null && raw.isNotEmpty)
-        ? '$baseUrl$raw'
+        ? '$base$raw'
         : null;
 
     return profile_entity.ProfileEntity(
@@ -110,9 +121,11 @@ class UserRemoteRepositoryImpl implements UserRepository {
       throw Exception('No token, authorization denied');
     }
 
-    final uri = Uri.parse('$baseUrl/auth/profile');
+    // fetch base & build profile URI
+    final base = await ApiConfig.baseUrl;
+    final uri  = Uri.parse('$base/auth/profile');
 
-    // If photoUrl is a local filesystem path (new image), do multipart
+    // If user selected a new local image, use multipart
     if (profile.photoUrl != null &&
         profile.photoUrl!.isNotEmpty &&
         !profile.photoUrl!.startsWith('http')) {
@@ -128,27 +141,27 @@ class UserRemoteRepositoryImpl implements UserRepository {
         request.fields['phoneNumber'] = profile.phone!;
       }
 
+      // attach file
       request.files.add(await http.MultipartFile.fromPath(
         'profileImage',
-        profile.photoUrl!, // local path
+        profile.photoUrl!, // local filesystem path
       ));
 
       final streamed = await request.send();
       final response = await http.Response.fromStream(streamed);
       if (response.statusCode != 200) {
-        final msg = () {
-          try {
-            return jsonDecode(response.body)['message'];
-          } catch (_) {
-            return 'status ${response.statusCode}';
-          }
-        }();
-        throw Exception('Failed to update profile ($msg)');
+        String message;
+        try {
+          message = jsonDecode(response.body)['message'];
+        } catch (_) {
+          message = 'status ${response.statusCode}';
+        }
+        throw Exception('Failed to update profile ($message)');
       }
       return;
     }
 
-    // Otherwise, just send JSON (no new image)
+    // Otherwise, do a simple PUT with JSON
     final response = await client.put(
       uri,
       headers: {
@@ -164,14 +177,13 @@ class UserRemoteRepositoryImpl implements UserRepository {
     );
 
     if (response.statusCode != 200) {
-      final msg = () {
-        try {
-          return jsonDecode(response.body)['message'];
-        } catch (_) {
-          return 'status ${response.statusCode}';
-        }
-      }();
-      throw Exception('Failed to update profile ($msg)');
+      String message;
+      try {
+        message = jsonDecode(response.body)['message'];
+      } catch (_) {
+        message = 'status ${response.statusCode}';
+      }
+      throw Exception('Failed to update profile ($message)');
     }
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rent_my_fit/app/service_locator.dart';
@@ -13,9 +15,8 @@ import 'package:rent_my_fit/features/home/presentation/view_model/product_view_m
 import 'package:rent_my_fit/features/profile/presentation/view/profile_view.dart';
 import 'package:rent_my_fit/features/wishlist/presentation/view/wishlist_view.dart';
 
-// ✅ Import your sensor services
+// ✅ Import only ShakeService now
 import 'package:rent_my_fit/sensors/shake_service.dart';
-import 'package:rent_my_fit/sensors/proximity_service.dart';
 
 class DashboardView extends StatelessWidget {
   final bool isAdmin;
@@ -53,32 +54,29 @@ class _DashboardContentState extends State<DashboardContent> {
   int _selectedIndex = 0;
   String? profileImageUrl; // Track profile image if updated
 
+  // store your shake subscription so you can cancel
+  StreamSubscription<void>? _shakeSub;
+
   @override
   void initState() {
     super.initState();
 
-    // ✅ Start Shake Listener
+    // ✅ Start the shake service once
     ShakeService().start();
-    ShakeService().onShake.listen((_) {
+
+    // ✅ Listen locally so we can cancel in dispose
+    _shakeSub = ShakeService().onShake.listen((_) {
       _showLogoutDialog(context);
     });
-
-    // ✅ Start Proximity Listener
-    ProximityService().start();
-    ProximityService().onProximity.listen((isNear) {
-      if (isNear) {
-        themeNotifier.toggleTheme();
-      }
-    });
-
-    // TODO: Load your profile image from Hive, API, or local storage
-    // Example: profileImageUrl = await UserLocalDataSource().getProfileImage();
   }
 
   @override
   void dispose() {
-    ShakeService().dispose();
-    ProximityService().dispose();
+    // ✅ cancel local subscription
+    _shakeSub?.cancel();
+    // ✅ stop the sensor stream (keeps controller open if needed elsewhere)
+    ShakeService().stop();
+
     super.dispose();
   }
 
@@ -136,7 +134,7 @@ class _DashboardContentState extends State<DashboardContent> {
               centerTitle: true,
               automaticallyImplyLeading: false,
               actions: [
-                // 🌙 / ☀️ Theme toggle button
+                // 🌙 / ☀️ Theme toggle button (keep this!)
                 IconButton(
                   icon: ValueListenableBuilder<ThemeMode>(
                     valueListenable: themeNotifier,
@@ -152,7 +150,7 @@ class _DashboardContentState extends State<DashboardContent> {
                   onPressed: () => themeNotifier.toggleTheme(),
                 ),
 
-                // ✅ Dynamic profile button with fallback icon
+                // ✅ Profile button
                 IconButton(
                   icon: profileImageUrl != null
                       ? CircleAvatar(
@@ -164,12 +162,13 @@ class _DashboardContentState extends State<DashboardContent> {
                     await Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const ProfileView()),
                     );
-                    // Reload image after returning from profile page
                     setState(() {
-                      // profileImageUrl = reload from storage if updated
+                      // reload profileImageUrl if needed
                     });
                   },
                 ),
+
+                // ✅ Manual logout button
                 IconButton(
                   icon: const Icon(Icons.logout, color: Colors.white),
                   onPressed: () => _showLogoutDialog(context),
