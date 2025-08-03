@@ -1,16 +1,5 @@
-# rent_my_fit
-
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# RentMyFit
+RentMyFit is a Flutter-based mobile marketplace that lets users browse, wishlist, and rent fashion items clothing and shoes directly from their phones. 
+Consumers can create an account, explore curated products with multiple sizes, add favorites to a wishlist, and manage a shopping cart. 
+An admin panel enables product management (add, edit, delete) and image uploads. 
+Proximity and shake sensors provide quick theme switching and logout, delivering an interactive, seamless rental shopping experience.  
